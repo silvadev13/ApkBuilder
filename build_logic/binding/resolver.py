@@ -23,6 +23,7 @@ def normalize_id(value):
 
 def bind_views(elem, child=False):
     view_id = normalize_id(elem.get(A + "id"))
+    binding_id = None
     if not view_id and not child:
         view_id = "rootView"
     if view_id:

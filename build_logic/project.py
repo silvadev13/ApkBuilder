@@ -97,6 +97,21 @@ class Project:
     def get_view_binding_dir(self):
         return self.__view_binding_dir
     
+    def get_lib_package_names(self):
+        packages = set()
+        
+        for root, _, files in os.walk(self.get_libs_dir()):
+            for f in files:
+                if f != "AndroidManifest.xml":
+                    continue
+                
+                manifest_file = os.path.join(root, f)
+                pkg = ET.parse(manifest_file).getroot().attrib.get("package")
+                if pkg:
+                    packages.add(pkg)
+        
+        return ":".join(sorted(packages))
+    
     def find_files(self, base_dir, suffix):
         result = []
         

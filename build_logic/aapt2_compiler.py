@@ -114,11 +114,22 @@ class AAPT2:
             if f.endswith(".zip"):
                 args += ["-R", full]
         
+        #use to gen R.java for used libraries
+        extra_packages = self.project.get_lib_package_names()
+        if extra_packages:
+            args += ["--extra-packages", extra_packages]
+        
         output_res = os.path.join(self.project.get_bin_dir(), "gen.apk.res")
+        r_text = os.path.join(self.project.get_compiled_res_dir(), "R.txt")
+        if os.path.exists(r_text):
+            os.remove(r_text)
+            open(r_text, "w").close()
+        
         args += [
             "--java", self.project.get_gen_dir(),
             "--manifest", self.project.get_manifest_file(),
-            "-o", output_res
+            "-o", output_res,
+            "--output-text-symbols", r_text
         ]
         
         run(args)
