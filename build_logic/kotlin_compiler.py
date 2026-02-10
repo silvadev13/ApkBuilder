@@ -1,0 +1,40 @@
+from .core import run, get_logger
+from .project import Project
+import os
+
+class KOTLIN:
+    def __init__(self, project: Project):
+        self.tools = os.path.abspath("./build_logic/tools")
+        self.aapt2 = os.path.join(self.tools, "aapt2")
+        self.android_jar = os.path.join(self.tools, "android.jar")
+        self.project = project
+    
+    def prepare(self):
+        pass
+    
+    def start(self):
+        kotlin_files = self.project.find_kotlin_files()
+        if not kotlin_files:
+            return
+        
+        get_logger().info("> :app:compileKotlinWithKotlinc")
+        
+        kotlin_classes_dir = self.project.get_kotlin_classes_dir()
+        os.makedirs(kotlin_classes_dir, exist_ok=True)
+        
+        lib_jars = self.project.find_lib_jars()
+        classpath = os.pathsep.join([
+            self.android_jar,
+            self.project.get_java_classes_dir(),
+            *lib_jars
+        ])
+        
+        args = [
+            "kotlinc",
+            *kotlin_files,
+            "-classpath", classpath,
+            "-d", self.project.get_kotlin_classes_dir(),
+            "-jvm-target", "17"
+        ]
+        
+        run(args)
