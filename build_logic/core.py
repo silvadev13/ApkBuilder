@@ -1,3 +1,4 @@
+import os
 import subprocess
 import logging
 
@@ -48,3 +49,7 @@ def run(cmd):
 
 def get_logger():
     return log
+
+def cmd_is_available(cmd):
+    isa = os.system(f"which {cmd} > /dev/null") == 0
+    return isa

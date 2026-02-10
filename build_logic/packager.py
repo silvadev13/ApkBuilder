@@ -1,4 +1,5 @@
-from .core import run, get_logger
+from logging import getLevelNamesMapping
+from .core import run, get_logger, cmd_is_available
 from .project import Project
 import zipfile
 import shutil
@@ -15,6 +16,8 @@ class APK:
         pass
     
     def __sign_apk(self):
+        get_logger().info("> signingApk")
+        
         testkey = os.path.join(self.tools, "testkey.pk8")
         if not testkey:
             get_logger().error("Testkey not found")
@@ -24,7 +27,10 @@ class APK:
             get_logger().error("Testcert not found")
             return
     
-        get_logger().info("> signingApk")
+        apksigner_available = cmd_is_available("apksigner")
+        if not apksigner_available:
+            get_logger().error("> apksigner not detected in PATH. Please set it in PATH.")
+            return
     
         run([
             "apksigner", "sign",
