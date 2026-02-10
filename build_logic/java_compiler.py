@@ -2,7 +2,7 @@ from .core import run, get_logger
 from .project import Project
 import os
 
-class JAVA:
+class JavaCompiler:
     def __init__(self, project: Project):
         self.tools = os.path.abspath("./build_logic/tools")
         self.aapt2 = os.path.join(self.tools, "aapt2")
