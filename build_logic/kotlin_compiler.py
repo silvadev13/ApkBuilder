@@ -1,4 +1,4 @@
-from .core import run, get_logger
+from .core import cmd_is_available, run, get_logger, cmd_is_available
 from .project import Project
 import os
 
@@ -16,8 +16,14 @@ class KotlinCompiler:
         kotlin_files = self.project.find_kotlin_files()
         if not kotlin_files:
             return
-        
+
         get_logger().info("> :app:compileKotlinWithKotlinc")
+
+        kotlinc_available = cmd_is_available("kotlinc")
+        if not kotlinc_available:
+            get_logger().error("> kotlinc not detected in PATH. Please set it in PATH.")
+            return
+        
         
         kotlin_classes_dir = self.project.get_kotlin_classes_dir()
         os.makedirs(kotlin_classes_dir, exist_ok=True)
@@ -28,6 +34,7 @@ class KotlinCompiler:
             self.project.get_java_classes_dir(),
             *lib_jars
         ])
+
         
         args = [
             "kotlinc",

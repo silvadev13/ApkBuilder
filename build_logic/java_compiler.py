@@ -1,4 +1,4 @@
-from .core import run, get_logger
+from .core import run, get_logger, cmd_is_available
 from .project import Project
 import os
 
@@ -14,7 +14,12 @@ class JavaCompiler:
     
     def start(self):
         get_logger().info("> :app:compileJavaWithJavac")
-        
+
+        java_available = cmd_is_available("javac")
+        if not java_available:
+            get_logger().error("> javac not detected in PATH. Please set it in PATH.")
+            return
+    
         java_classes_dir = self.project.get_java_classes_dir()
         os.makedirs(java_classes_dir, exist_ok=True)
         
@@ -31,6 +36,7 @@ class JavaCompiler:
             self.android_jar,
             *lib_jars
         ])
+
         
         args = [
             "javac",
