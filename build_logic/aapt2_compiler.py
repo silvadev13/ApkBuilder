@@ -1,4 +1,4 @@
-from .core import run, get_logger
+from .core import run, get_logger, cmd_is_available
 from .project import Project
 import shutil
 import os
@@ -6,7 +6,6 @@ import os
 class AAPT2:
     def __init__(self, project: Project):
         self.tools = os.path.abspath("./build_logic/tools")
-        self.aapt2 = os.path.join(self.tools, "aapt2")
         self.android_jar = os.path.join(self.tools, "android.jar")
         self.project = project
         self.libs_to_compile = []
@@ -61,7 +60,7 @@ class AAPT2:
             
             out = os.path.join(out_dir, f"{lib_name}.zip")
             run([
-                self.aapt2, "compile",
+                "aapt2", "compile",
                 "--dir", res,
                 "-o", out
             ])
@@ -70,6 +69,12 @@ class AAPT2:
         return compiled
     
     def start(self):
+        aapt2_available = cmd_is_available("aapt2")
+        if not aapt2_available:
+            error_msg = "> aapt2 not detected in PATH. Please set it in PATH."
+            get_logger().error(error_msg)
+            raise Exception(error_msg)
+        
         get_logger().info("> :app:compilingResources")
         
         #compile res
@@ -77,7 +82,7 @@ class AAPT2:
         os.makedirs(compiled_res_dir, exist_ok=True)
         
         run([
-            self.aapt2, "compile",
+            "aapt2", "compile",
             "--dir", self.project.get_res_dir(),
             "-o", os.path.join(compiled_res_dir, "res.zip")
         ])
@@ -85,9 +90,9 @@ class AAPT2:
         #compile libraries
         self.compile_libs_aapt2()
         
-        #link aapt2
+        #link res
         args = [
-            self.aapt2, "link",
+            "aapt2", "link",
             "--allow-reserved-package-id",
             "--no-version-vectors",
             "--no-version-transitions",

@@ -48,13 +48,14 @@ Before using ApkBuilder, make sure you have the following installed in Termux:
 
 • Kotlin compiler (kotlinc)
 
+• AAPT2
+
+• D8
+
 • apksigner
 
-
-You also need to make aapt2 executable:
-
 ```
-chmod +x build_logic/tools/aapt2
+pkg install -y openjdk-17 kotlinc aapt2 d8 apksigner
 ```
 
 ---
@@ -64,13 +65,13 @@ chmod +x build_logic/tools/aapt2
 To compile your project, use the builder.py module:
 
 ```
-python builder.py <APK_PATH> <MIN_SDK> <TARGET_SDK> <VERSION_CODE> <VERSION_NAME>
+python builder.py <PROJECT_PATH> --min-sdk <MIN_SDK> --target-sdk <TARGET_SDK> --version-code <VERSION_CODE> --version-name <VERSION_NAME>
 ```
 
 Example
 
 ```
-python builder.py output.apk 21 34 1 "1.0"
+python builder.py example_project/ --min-sdk 21 --target-sdk 34 --version-code 1 --version-name "1.0"
 ```
 
 This will compile the project, generate DEX files, package resources, and produce a signed APK.

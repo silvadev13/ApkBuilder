@@ -5,7 +5,6 @@ import os
 class JavaCompiler:
     def __init__(self, project: Project):
         self.tools = os.path.abspath("./build_logic/tools")
-        self.aapt2 = os.path.join(self.tools, "aapt2")
         self.android_jar = os.path.join(self.tools, "android.jar")
         self.project = project
     
@@ -17,8 +16,9 @@ class JavaCompiler:
 
         java_available = cmd_is_available("javac")
         if not java_available:
-            get_logger().error("> javac not detected in PATH. Please set it in PATH.")
-            return
+            error_msg = "> javac not detected in PATH. Please set it in PATH."
+            get_logger().error(error_msg)
+            raise Exception(error_msg)
     
         java_classes_dir = self.project.get_java_classes_dir()
         os.makedirs(java_classes_dir, exist_ok=True)

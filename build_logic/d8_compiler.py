@@ -1,19 +1,23 @@
-from .core import run, get_logger
+from .core import run, get_logger, cmd_is_available
 from .project import Project
 import os
 
 class D8:
     def __init__(self, project: Project):
         self.tools = os.path.abspath("./build_logic/tools")
-        self.aapt2 = os.path.join(self.tools, "aapt2")
         self.android_jar = os.path.join(self.tools, "android.jar")
-        self.r8 = os.path.join(self.tools, "r8-8.13.19.jar")
         self.project = project
     
     def prepare(self):
         pass
     
     def start(self):
+        d8_available = cmd_is_available("d8")
+        if not d8_available:
+            error_msg = "> d8 not detected in PATH. Please set it in PATH."
+            get_logger().error(error_msg)
+            raise Exception(error_msg)
+        
         get_logger().info("> :app:compileDexWithD8")
         
         java_classes_files = self.project.find_files(self.project.get_java_classes_dir(), ".class")
@@ -25,9 +29,7 @@ class D8:
             return
         
         args = [
-            "java",
-            "-cp", self.r8,
-            "com.android.tools.r8.D8",
+            "d8",
             "--release",
             "--min-api", str(self.project.get_min_sdk()),
             "--lib", self.android_jar,

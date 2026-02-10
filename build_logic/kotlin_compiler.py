@@ -5,7 +5,6 @@ import os
 class KotlinCompiler:
     def __init__(self, project: Project):
         self.tools = os.path.abspath("./build_logic/tools")
-        self.aapt2 = os.path.join(self.tools, "aapt2")
         self.android_jar = os.path.join(self.tools, "android.jar")
         self.project = project
     
@@ -21,8 +20,9 @@ class KotlinCompiler:
 
         kotlinc_available = cmd_is_available("kotlinc")
         if not kotlinc_available:
-            get_logger().error("> kotlinc not detected in PATH. Please set it in PATH.")
-            return
+            error_msg = "> kotlinc not detected in PATH. Please set it in PATH."
+            get_logger().error(error_msg)
+            raise Exception(error_msg)
         
         
         kotlin_classes_dir = self.project.get_kotlin_classes_dir()
