@@ -1,4 +1,5 @@
 from build_logic.aapt2_compiler import AAPT2
+from build_logic.binding.generator import GenerateViewBinding
 from build_logic.java_compiler import JavaCompiler
 from build_logic.d8_compiler import D8
 from build_logic.kotlin_compiler import KotlinCompiler
@@ -39,6 +40,12 @@ def main():
         default="1",
         help="APK version name"
     )
+    parser.add_argument(
+        "--view-binding",
+        type=bool,
+        default=False,
+        help="Enable view binding in project"
+    )
 
     args = parser.parse_args()
 
@@ -47,18 +54,25 @@ def main():
     target_sdk = args.target_sdk
     version_code = args.version_code
     version_name = args.version_name
+    view_binding = args.view_binding
 
     proj = project.Project(
         project_path,
         min_sdk,
         target_sdk,
         version_code,
-        version_name
+        version_name,
+        view_binding
     )
 
     aapt_task = AAPT2(proj)
     aapt_task.prepare()
     aapt_task.start()
+    
+    if view_binding:
+        gen_view_binding_task = GenerateViewBinding(proj)
+        gen_view_binding_task.prepare()
+        gen_view_binding_task.start()
 
     java_task = JavaCompiler(proj)
     java_task.prepare()

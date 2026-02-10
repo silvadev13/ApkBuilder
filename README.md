@@ -16,7 +16,7 @@ to be built directly from the command line on Android devices.
 - [x] Java
 - [x] Kotlin
 - [ ] R8 / ProGuard
-- [ ] ViewBinding (not supported yet)
+- [x] ViewBinding
 - [ ] Jetpack Compose (not supported yet)
 
 ---
@@ -65,13 +65,13 @@ pkg install -y openjdk-17 kotlinc aapt2 d8 apksigner
 To compile your project, use the builder.py module:
 
 ```
-python builder.py <PROJECT_PATH> --min-sdk <MIN_SDK> --target-sdk <TARGET_SDK> --version-code <VERSION_CODE> --version-name <VERSION_NAME>
+python builder.py <PROJECT_PATH> --min-sdk <MIN_SDK> --target-sdk <TARGET_SDK> --version-code <VERSION_CODE> --version-name <VERSION_NAME> --view-binding <ENABLE_VIEW_BINDING>
 ```
 
 Example
 
 ```
-python builder.py example_project/ --min-sdk 21 --target-sdk 34 --version-code 1 --version-name "1.0"
+python builder.py example_project/ --min-sdk 21 --target-sdk 34 --version-code 1 --version-name "1.0" --view-binding True
 ```
 
 This will compile the project, generate DEX files, package resources, and produce a signed APK.

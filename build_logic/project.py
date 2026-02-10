@@ -1,12 +1,14 @@
 from .core import get_logger
 import os
+import xml.etree.ElementTree as ET
 
 class Project:
-    def __init__(self, project_dir, min_sdk, target_sdk, version_code, version_name):
+    def __init__(self, project_dir, min_sdk, target_sdk, version_code, version_name, enable_view_binding):
         self.__min_sdk = min_sdk
         self.__target_sdk = target_sdk
         self.__version_code = version_code
         self.__version_name = version_name
+        self.__enable_view_binding = enable_view_binding
         self.__app_dir = os.path.join(project_dir, "app")
         if not self.__app_dir:
             get_logger().error("No app module found")
@@ -18,6 +20,7 @@ class Project:
         self.__native_libs_dir = os.path.join(self.__main_dir, "jniLibs")
         self.__res_dir = os.path.join(self.__main_dir, "res")
         self.__manifest_file = os.path.join(self.__main_dir, "AndroidManifest.xml")
+        self.__package_name = ET.parse(self.__manifest_file).getroot().attrib.get("package")
         
         #libs path
         self.__libs_dir = os.path.join(self.__app_dir, "libs")
@@ -31,8 +34,8 @@ class Project:
         self.__java_classes_dir = os.path.join(self.__bin_dir, "java", "classes")
         self.__kotlin_classes_dir = os.path.join(self.__bin_dir, "kotlin", "classes")
         self.__compiled_res_dir = os.path.join(self.__bin_dir, "res")
-        #this dir servers to R.java files
-        self.__injected_dir = os.path.join(self.__output_dir, "injected", "resource")
+        #this dir servers to generated view binding files
+        self.__view_binding_dir = os.path.join(self.__output_dir, "view_binding")
     
     def get_min_sdk(self):
         return self.__min_sdk
@@ -45,6 +48,12 @@ class Project:
     
     def get_version_name(self):
         return self.__version_code
+    
+    def get_package_name(self):
+        return self.__package_name
+    
+    def get_enable_view_binding(self):
+        return self.__enable_view_binding
     
     def get_app_dir(self):
         return self.__app_dir
@@ -85,8 +94,8 @@ class Project:
     def get_compiled_res_dir(self):
         return self.__compiled_res_dir
     
-    def get_injected_dir(self):
-        return self.__injected_dir
+    def get_view_binding_dir(self):
+        return self.__view_binding_dir
     
     def find_files(self, base_dir, suffix):
         result = []

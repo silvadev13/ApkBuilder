@@ -1,4 +1,3 @@
-from logging import getLevelNamesMapping
 from .core import run, get_logger, cmd_is_available
 from .project import Project
 import zipfile
@@ -8,7 +7,6 @@ import os
 class APK:
     def __init__(self, project: Project):
         self.tools = os.path.abspath("./build_logic/tools")
-        self.aapt2 = os.path.join(self.tools, "aapt2")
         self.android_jar = os.path.join(self.tools, "android.jar")
         self.project = project
     
