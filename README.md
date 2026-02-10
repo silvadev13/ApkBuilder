@@ -28,6 +28,7 @@ Your Android project must follow this structure:
 ```text
 Project/
  └── app/
+     ├── libs/ (project libraries)
      └── src/
          └── main/
              ├── assets/        (optional)
