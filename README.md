@@ -55,7 +55,7 @@ Before using ApkBuilder, make sure you have the following installed in Termux:
 • apksigner
 
 ```
-pkg install -y openjdk-17 kotlinc aapt2 d8 apksigner
+pkg install -y openjdk-17 kotlin aapt2 d8 apksigner
 ```
 
 ---
