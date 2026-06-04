@@ -1,0 +1,43 @@
+android:
+  # ── App identity ──
+  sdk-min-api-version: 26        # Android 8.0+
+  sdk-api-version: 34            # Android 14 target
+  version-code: 1
+  version-name: "1.0.0"
+
+  # ── Build ──
+  build-type: debug              # change to "release" for production APK
+
+  # ── Signing (release only) ──
+  keystore-path: keystore/cerealicious.jks
+  keystore-alias: cerealicious
+  keystore-store-pass: changeme
+  keystore-key-pass: changeme
+
+  # ── Java / Kotlin ──
+  java-version: 17
+
+  # ── Source layout ──
+  manifest-path: AndroidManifest.xml
+  sources-path: src/java
+  res-path: src/res
+  assets-path: src/assets
+  jni-path: src/jniLibs
+
+  # ── View Binding ──
+  view-binding: true
+
+  # ── Android SDK (override or set ANDROID_SDK env var) ──
+  # sdk-path: /path/to/android-sdk
+
+# ── Output dirs ──
+build-path: .build
+libs-path: .libs
+
+# ── Binary overrides (optional — falls back to PATH) ──
+# bins:
+#   aapt2:     /path/to/aapt2
+#   javac:     /path/to/javac
+#   kotlinc:   /path/to/kotlinc
+#   d8:        /path/to/d8
+#   apksigner: /path/to/apksigner

@@ -1,0 +1,17 @@
+{
+  "name": "ApkBuilder",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+  "features": {
+    "ghcr.io/devcontainers/features/java:1": {},
+    "ghcr.io/devcontainers/features/android:1": {}
+  },
+  "remoteUser": "codespace",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-vscode.extension-pack-for-java",
+        "ms-python.python"
+      ]
+    }
+  }
+}

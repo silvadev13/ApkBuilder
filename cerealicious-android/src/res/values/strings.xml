@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Cerealicious</string>
+    <string name="app_tagline">Thick Milkshakes · Morden</string>
+    <string name="channel_orders">Order Updates</string>
+    <string name="channel_promos">Deals &amp; Rewards</string>
+</resources>
