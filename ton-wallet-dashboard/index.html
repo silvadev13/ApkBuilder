@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>TON Wallet Dashboard</title>
+  <script src="https://unpkg.com/@tonconnect/ui@3.0.0/dist/tonconnect-ui.min.js"></script>
+  <style>
+    *{box-sizing:border-box}body{margin:0;background:#111214;color:#f4f4f5;font-family:Inter,system-ui,sans-serif}
+    .wrap{max-width:760px;margin:auto;padding:24px}.top{display:flex;justify-content:space-between;align-items:center;gap:16px}
+    h1{font-size:24px;margin:0}.muted{color:#92949a}.card{background:#1a1b1f;border:1px solid #292b31;border-radius:18px;padding:20px;margin-top:18px}
+    .balance{font-size:38px;font-weight:700;margin:10px 0}.address{font-size:13px;word-break:break-all;color:#aeb1b8}
+    .row{display:flex;justify-content:space-between;padding:14px 0;border-bottom:1px solid #292b31}.row:last-child{border:0}
+    #ton-connect{min-width:150px}button{border:0;border-radius:12px;padding:12px 16px}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <div class="top"><h1>TON Wallet</h1><div id="ton-connect"></div></div>
+    <section class="card">
+      <div class="muted">Connected wallet</div>
+      <div id="address" class="address" style="margin-top:8px">Not connected</div>
+      <div class="muted" style="margin-top:24px">Balance</div>
+      <div id="balance" class="balance">— TON</div>
+    </section>
+    <section class="card">
+      <h2 style="margin-top:0">Recent activity</h2>
+      <div id="activity" class="muted">Connect your wallet to begin.</div>
+    </section>
+  </main>
+  <script>
+    const ui = new TON_CONNECT_UI.TonConnectUI({
+      manifestUrl: location.origin + '/tonconnect-manifest.json',
+      buttonRootId: 'ton-connect'
+    });
+
+    function short(a){ return a ? a.slice(0,8)+'…'+a.slice(-8) : ''; }
+
+    ui.onStatusChange(wallet => {
+      const address = wallet?.account?.address || '';
+      document.getElementById('address').textContent = address ? short(address) : 'Not connected';
+      document.getElementById('activity').textContent =
+        wallet ? 'Wallet connected. Live balance/transaction API can be added here.' : 'Connect your wallet to begin.';
+    });
+  </script>
+</body>
+</html>

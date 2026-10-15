@@ -73,6 +73,10 @@ class Project:
 
         self.view_binding_dir = os.path.join(self.output_dir, "view_binding")
         
+        # Cache for library jars and library package names to avoid redundant os.walk traversals
+        self._cached_lib_jars = None
+        self._cached_lib_package_names = None
+
         self.__config_bin = self.config.get("bins", {})
                 
         self.bin_aapt2 = self.__resolve_bin("aapt2")
@@ -111,19 +115,25 @@ class Project:
         raise Exception(f"-- bin '{name}' not found and no fallback available")
     
     def get_lib_package_names(self):
+        # BOLT OPTIMIZATION: Cache library package names to avoid re-scanning
+        # libs_dir and re-parsing AndroidManifest.xml files across build steps.
+        if self._cached_lib_package_names is not None:
+            return self._cached_lib_package_names
+
         packages = set()
+        if os.path.isdir(self.libs_dir):
+            for root, _, files in os.walk(self.libs_dir):
+                for f in files:
+                    if f != "AndroidManifest.xml":
+                        continue
+
+                    manifest_file = os.path.join(root, f)
+                    pkg = ET.parse(manifest_file).getroot().attrib.get("package")
+                    if pkg:
+                        packages.add(pkg)
         
-        for root, _, files in os.walk(self.libs_dir):
-            for f in files:
-                if f != "AndroidManifest.xml":
-                    continue
-                
-                manifest_file = os.path.join(root, f)
-                pkg = ET.parse(manifest_file).getroot().attrib.get("package")
-                if pkg:
-                    packages.add(pkg)
-        
-        return ":".join(sorted(packages))
+        self._cached_lib_package_names = ":".join(sorted(packages))
+        return self._cached_lib_package_names
     
     def find_files(self, base_dir, suffix):
         result = []
@@ -132,6 +142,9 @@ class Project:
             get_logger().error("-- no base dir found")
             return result
         
+        if not os.path.exists(base_dir):
+            return result
+
         if not os.path.isdir(base_dir):
             get_logger().error("-- base dir cannot be file")
             return result
@@ -151,12 +164,19 @@ class Project:
         return self.find_files(base_dir, ".kt")
     
     def find_lib_jars(self):
+        # BOLT OPTIMIZATION: Cache library jar paths to avoid running redundant
+        # os.walk traversals on libs_dir across compiler, dexer, and packager steps.
+        if self._cached_lib_jars is not None:
+            return list(self._cached_lib_jars)
+
         jars = []
-        for root, _, files in os.walk(self.libs_dir):
-            for f in files:
-                if f.endswith(".jar") and f != "lint.jar":
-                    jars.append(os.path.join(root, f))
-        return jars
+        if os.path.isdir(self.libs_dir):
+            for root, _, files in os.walk(self.libs_dir):
+                for f in files:
+                    if f.endswith(".jar") and f != "lint.jar":
+                        jars.append(os.path.join(root, f))
+        self._cached_lib_jars = jars
+        return list(self._cached_lib_jars)
     
     def find_dex_files(self):
         return [
