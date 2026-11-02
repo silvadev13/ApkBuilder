@@ -172,6 +172,39 @@ android:
         self.assertEqual(len(kt_files), 1)
         self.assertEqual(kt_files[0], file_kt)
 
+    @patch("utils.util.get_bin", return_value="/usr/bin/stub")
+    @patch("os.getenv", return_value="/tmp/android-sdk")
+    def test_find_files_prune_dirs(self, mock_getenv, mock_get_bin):
+        proj = Project(self.project_dir)
+
+        test_root = os.path.join(self.project_dir, "prune_test")
+        valid_dir = os.path.join(test_root, "valid")
+        res_dir = os.path.join(test_root, "res", "nested")
+        assets_dir = os.path.join(test_root, "assets")
+
+        os.makedirs(valid_dir, exist_ok=True)
+        os.makedirs(res_dir, exist_ok=True)
+        os.makedirs(assets_dir, exist_ok=True)
+
+        valid_dex = os.path.join(valid_dir, "classes.dex")
+        res_dex = os.path.join(res_dir, "ignored.dex")
+        assets_dex = os.path.join(assets_dir, "ignored.dex")
+
+        for f in (valid_dex, res_dex, assets_dex):
+            with open(f, "w") as fp:
+                fp.write("dummy dex")
+
+        # Default find_files prunes 'res' and 'assets'
+        files = proj.find_files(test_root, ".dex")
+        self.assertEqual(files, [valid_dex])
+
+        # Without pruning, finds all three dex files
+        all_files = proj.find_files(test_root, ".dex", prune_dirs=())
+        self.assertEqual(len(all_files), 3)
+        self.assertIn(valid_dex, all_files)
+        self.assertIn(res_dex, all_files)
+        self.assertIn(assets_dex, all_files)
+
     @patch("utils.util.get_bin", return_value=None)
     @patch("os.getenv", return_value=None)
     def test_sdk_and_bin_fallback(self, mock_getenv, mock_get_bin):
