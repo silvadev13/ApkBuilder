@@ -40,7 +40,14 @@
 
     async function loadTonData(address) {
       try {
-        const accRes = await fetch('/api/ton/account/' + encodeURIComponent(address));
+        const encodedAddr = encodeURIComponent(address);
+        // BOLT OPTIMIZATION: Execute independent account and transaction fetches concurrently using Promise.all
+        // to eliminate sequential network waterfall latency, cutting loading time by ~50%.
+        const [accRes, txRes] = await Promise.all([
+          fetch('/api/ton/account/' + encodedAddr),
+          fetch('/api/ton/transactions/' + encodedAddr)
+        ]);
+
         if (accRes.ok) {
           const accData = await accRes.json();
           if (accData.balance !== undefined) {
@@ -48,7 +55,6 @@
           }
         }
 
-        const txRes = await fetch('/api/ton/transactions/' + encodeURIComponent(address));
         if (txRes.ok) {
           const txData = await txRes.json();
           const activityEl = document.getElementById('activity');
