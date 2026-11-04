@@ -239,7 +239,12 @@
     </header>
 
     <div class="wallet-card">
-      <div style="font-size:0.85rem; color: var(--text-muted);">Connected Wallet Balance</div>
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <span style="font-size:0.85rem; color:var(--text-muted);">Connected Wallet</span>
+        <button id="copyAddressBtn" type="button" aria-label="Copy wallet address" style="display:none; background:transparent; border:1px solid var(--border-color); color:var(--text-muted); font-size:0.75rem; border-radius:6px; padding:2px 8px; cursor:pointer;" onclick="copyWalletAddress()">Copy</button>
+      </div>
+      <div id="walletAddress" style="font-size:0.85rem; color:var(--text-muted); margin-top:4px;">Not connected</div>
+      <div style="font-size:0.85rem; color:var(--text-muted); margin-top:12px;">Balance</div>
       <div id="walletBalance" class="balance-display">— TON</div>
     </div>
 
@@ -402,9 +407,29 @@
       }
     }
 
+    let currentAddress = '';
+    function copyWalletAddress() {
+      if (!currentAddress) return;
+      navigator.clipboard.writeText(currentAddress).then(() => {
+        const btn = document.getElementById('copyAddressBtn');
+        btn.textContent = '✓ Copied';
+        btn.setAttribute('aria-label', 'Wallet address copied');
+        setTimeout(() => {
+          btn.textContent = 'Copy';
+          btn.setAttribute('aria-label', 'Copy wallet address');
+        }, 2000);
+      });
+    }
+
     tonConnectUI.onStatusChange(wallet => {
-      if (wallet && wallet.account && wallet.account.address) {
-        fetchTonAccountInfo(wallet.account.address);
+      const copyBtn = document.getElementById('copyAddressBtn');
+      const addrEl = document.getElementById('walletAddress');
+      const address = wallet?.account?.address || '';
+      currentAddress = address;
+      addrEl.textContent = address ? address.slice(0, 8) + '…' + address.slice(-8) : 'Not connected';
+      copyBtn.style.display = address ? 'inline-block' : 'none';
+      if (address) {
+        fetchTonAccountInfo(address);
       } else {
         document.getElementById('walletBalance').textContent = '— TON';
         document.getElementById('activityList').textContent = 'Connect your wallet to view transactions.';
