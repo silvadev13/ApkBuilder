@@ -27,7 +27,7 @@
 
 ## Python dependencies
 
-- `pip install pyyaml`
+- `pip install -r requirements.txt`
 
 ## Building an APK
 
@@ -37,4 +37,23 @@ example:
 
 ```
 python -m cli.builder example/
+```
+
+## Deployment (BorderP45 App)
+
+BorderP45 web application can be deployed using Docker and Gunicorn.
+
+### Docker Deployment
+
+To build and run using Docker Compose:
+
+```bash
+docker-compose up --build -d
+```
+
+Or using standard Docker commands:
+
+```bash
+docker build -t borderp45 .
+docker run -p 5000:5000 borderp45
 ```

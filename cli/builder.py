@@ -23,6 +23,7 @@ def main():
         proj = project.Project(project_path)
     except Exception as e:
         get_logger().error(e)
+        sys.exit(1)
 
     aapt_task = resources.Aapt2Task(proj)
     aapt_task.prepare()

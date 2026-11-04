@@ -1,0 +1,23 @@
+{
+  "short_name": "BorderP45",
+  "name": "BorderP45 - TON & Jetton Portal",
+  "description": "Progressive Web App for TON and Jetton Token Transfers",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#0f172a",
+  "theme_color": "#0088cc",
+  "display": "standalone",
+  "orientation": "any",
+  "scope": "/"
+}

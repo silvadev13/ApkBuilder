@@ -200,18 +200,23 @@ class GenerateViewBinding:
         os.makedirs(output_dir, exist_ok=True)
         
         root = os.path.join(self.project.res_dir, "layout")
-        for f in os.listdir(root):
-            full = os.path.join(root, f)
-            if not full.endswith(".xml"):
-                continue
-            
-            root_xml = parse_layout(full)
-            root_node = bind_views(root_xml)
-            
-            layout_name = os.path.basename(full).replace(".xml", "")
-            class_name = layout_to_binding_class_name(layout_name)
-            
-            binding_code = generate_binding_code(package_name, class_name, layout_name, root_node)
-            
-            with open(os.path.join(output_dir, f"{class_name}.java"), "w", encoding="utf-8") as f:
-                f.write(binding_code)
+        if not os.path.isdir(root):
+            return
+
+        # BOLT OPTIMIZATION: Use os.scandir to avoid os.listdir list allocation and os.path.join calls
+        with os.scandir(root) as entries:
+            for entry in entries:
+                if not (entry.is_file() and entry.name.endswith(".xml")):
+                    continue
+
+                full = entry.path
+                root_xml = parse_layout(full)
+                root_node = bind_views(root_xml)
+
+                layout_name = entry.name[:-4]
+                class_name = layout_to_binding_class_name(layout_name)
+
+                binding_code = generate_binding_code(package_name, class_name, layout_name, root_node)
+
+                with open(os.path.join(output_dir, f"{class_name}.java"), "w", encoding="utf-8") as f:
+                    f.write(binding_code)
