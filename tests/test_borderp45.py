@@ -21,6 +21,8 @@ class TestBorderP45(unittest.TestCase):
         self.assertIn(b'tabindex="0"', res.data)
         self.assertIn(b'tabindex="-1"', res.data)
         self.assertIn(b'ArrowRight', res.data)
+        self.assertIn(b'aria-required="true"', res.data)
+        self.assertIn(b'autocapitalize="none"', res.data)
 
     def test_static_and_manifest_routes(self):
         res_sw = self.client.get('/sw.js')
