@@ -74,10 +74,11 @@ class Project:
 
         self.view_binding_dir = os.path.join(self.output_dir, "view_binding")
         
-        # Cache for library jars, package names, and build-tools versions
+        # Cache for library jars, package names, build-tools versions, and sources
         self._cached_lib_jars = None
         self._cached_lib_package_names = None
         self._build_tools_versions = None
+        self._cached_source_files = None
 
         self.sdk_dir = self.__resolve_sdk_path()
 
@@ -205,13 +206,28 @@ class Project:
         _scan(base_dir)
         return result
     
+    def _get_or_scan_sources(self):
+        # BOLT OPTIMIZATION: Discover .java and .kt source files in a single traversal
+        # of sources_dir and cache the results to prevent duplicate directory scans.
+        if self._cached_source_files is None:
+            java_files, kt_files = [], []
+            for path in self.find_files(self.sources_dir, (".java", ".kt")):
+                if path.endswith(".java"):
+                    java_files.append(path)
+                elif path.endswith(".kt"):
+                    kt_files.append(path)
+            self._cached_source_files = (java_files, kt_files)
+        return self._cached_source_files
+
     def find_java_files(self, base_dir=None):
-        base_dir = base_dir if base_dir else self.sources_dir
-        return self.find_files(base_dir, ".java")
+        if base_dir and base_dir != self.sources_dir:
+            return self.find_files(base_dir, ".java")
+        return list(self._get_or_scan_sources()[0])
     
     def find_kotlin_files(self, base_dir=None):
-        base_dir = base_dir if base_dir else self.sources_dir
-        return self.find_files(base_dir, ".kt")
+        if base_dir and base_dir != self.sources_dir:
+            return self.find_files(base_dir, ".kt")
+        return list(self._get_or_scan_sources()[1])
     
     def find_lib_jars(self):
         # BOLT OPTIMIZATION: Cache library jar paths to avoid running redundant

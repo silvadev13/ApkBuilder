@@ -172,6 +172,51 @@ android:
         self.assertEqual(len(kt_files), 1)
         self.assertEqual(kt_files[0], file_kt)
 
+        # Multi-suffix tuple scan
+        all_src = proj.find_files(os.path.join(self.project_dir, "src", "java"), (".java", ".kt"))
+        self.assertEqual(len(all_src), 3)
+
+    @patch("utils.util.get_bin", return_value="/usr/bin/stub")
+    @patch("os.getenv", return_value="/tmp/android-sdk")
+    def test_find_source_files_caching(self, mock_getenv, mock_get_bin):
+        proj = Project(self.project_dir)
+
+        # Create java and kt files
+        src_dir = os.path.join(self.project_dir, "src", "java")
+        main_java = os.path.join(src_dir, "Main.java")
+        helper_kt = os.path.join(src_dir, "Helper.kt")
+        with open(main_java, "w") as f:
+            f.write("// java")
+        with open(helper_kt, "w") as f:
+            f.write("// kt")
+
+        # Initial call populates cache
+        self.assertIsNone(proj._cached_source_files)
+        java_files = proj.find_java_files()
+        self.assertIsNotNone(proj._cached_source_files)
+        self.assertEqual(java_files, [main_java])
+
+        kt_files = proj.find_kotlin_files()
+        self.assertEqual(kt_files, [helper_kt])
+
+        # Add new file to disk; cached results should remain stable
+        new_java = os.path.join(src_dir, "New.java")
+        with open(new_java, "w") as f:
+            f.write("// new")
+
+        self.assertEqual(proj.find_java_files(), [main_java])
+        self.assertEqual(proj.find_kotlin_files(), [helper_kt])
+
+        # Custom base_dir does not use cache
+        custom_dir = os.path.join(self.project_dir, "custom")
+        os.makedirs(custom_dir, exist_ok=True)
+        custom_file = os.path.join(custom_dir, "Custom.java")
+        with open(custom_file, "w") as f:
+            f.write("// custom")
+
+        custom_results = proj.find_java_files(custom_dir)
+        self.assertEqual(custom_results, [custom_file])
+
     @patch("utils.util.get_bin", return_value="/usr/bin/stub")
     @patch("os.getenv", return_value="/tmp/android-sdk")
     def test_find_files_prune_dirs(self, mock_getenv, mock_get_bin):
