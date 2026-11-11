@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BorderP45 - TON & Jetton Portal</title>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#0088cc">
+  <script src="https://unpkg.com/@tonconnect/ui@3.0.0/dist/tonconnect-ui.min.js"></script>
+  <style>
+    :root {
+      --bg-color: #0f172a;
+      --card-bg: #1e293b;
+      --accent-color: #0088cc;
+      --accent-hover: #0077b5;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --border-color: #334155;
+      --success-color: #22c55e;
+      --error-color: #ef4444;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 480px;
+      margin-top: 20px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    header h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #38bdf8;
+      margin-bottom: 6px;
+    }
+
+    header p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    #ton-connect {
+      margin-top: 14px;
+    }
+
+    .wallet-card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+
+    .balance-display {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #38bdf8;
+      margin-top: 4px;
+    }
+
+    .tabs {
+      display: flex;
+      background-color: var(--card-bg);
+      border-radius: 12px;
+      padding: 4px;
+      margin-bottom: 20px;
+      border: 1px solid var(--border-color);
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .tab-btn.active {
+      background-color: var(--accent-color);
+      color: #ffffff;
+    }
+
+    .tab-content {
+      display: none;
+      background-color: var(--card-bg);
+      border-radius: 16px;
+      padding: 24px;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 12px 14px;
+      background-color: #0f172a;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      color: var(--text-main);
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input:focus, textarea:focus {
+      border-color: var(--accent-color);
+    }
+
+    button.btn-submit {
+      width: 100%;
+      padding: 14px;
+      background-color: var(--accent-color);
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      margin-top: 8px;
+    }
+
+    button.btn-submit:hover {
+      background-color: var(--accent-hover);
+    }
+
+    button:focus-visible, input:focus-visible, textarea:focus-visible {
+      outline: 2px solid #38bdf8;
+      outline-offset: 2px;
+    }
+
+    button.btn-submit:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+    }
+
+    .status-card {
+      margin-top: 20px;
+      padding: 14px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      display: none;
+      word-break: break-all;
+    }
+
+    .status-card.success {
+      display: block;
+      background-color: rgba(34, 197, 94, 0.15);
+      border: 1px solid var(--success-color);
+      color: #4ade80;
+    }
+
+    .status-card.error {
+      display: block;
+      background-color: rgba(239, 68, 68, 0.15);
+      border: 1px solid var(--error-color);
+      color: #f87171;
+    }
+
+    .offline-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      font-size: 0.75rem;
+      border-radius: 20px;
+      background-color: #334155;
+      color: var(--text-muted);
+      margin-top: 10px;
+    }
+
+    .offline-badge.online {
+      background-color: rgba(34, 197, 94, 0.2);
+      color: #4ade80;
+    }
+
+    .tx-item {
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.9rem;
+    }
+    .tx-item:last-child {
+      border-bottom: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>BorderP45 Portal</h1>
+      <p>TON & Jetton Transfers</p>
+      <div id="ton-connect"></div>
+      <div id="connectionStatus" class="offline-badge">Checking connection...</div>
+    </header>
+
+    <div class="wallet-card">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <span style="font-size:0.85rem; color:var(--text-muted);">Connected Wallet</span>
+        <button id="copyAddressBtn" type="button" aria-label="Copy wallet address" style="display:none; background:transparent; border:1px solid var(--border-color); color:var(--text-muted); font-size:0.75rem; border-radius:6px; padding:2px 8px; cursor:pointer;" onclick="copyWalletAddress()">Copy</button>
+      </div>
+      <div id="walletAddress" style="font-size:0.85rem; color:var(--text-muted); margin-top:4px;">Not connected</div>
+      <div style="font-size:0.85rem; color:var(--text-muted); margin-top:12px;">Balance</div>
+      <div id="walletBalance" class="balance-display">— TON</div>
+    </div>
+
+    <div class="tabs" role="tablist" aria-label="Transfer type tabs">
+      <button class="tab-btn active" id="tab-ton" role="tab" aria-selected="true" tabindex="0" aria-controls="tonTab" onclick="switchTab('tonTab', this)">TON Transfer</button>
+      <button class="tab-btn" id="tab-jetton" role="tab" aria-selected="false" tabindex="-1" aria-controls="jettonTab" onclick="switchTab('jettonTab', this)">Jetton Transfer</button>
+      <button class="tab-btn" id="tab-activity" role="tab" aria-selected="false" tabindex="-1" aria-controls="activityTab" onclick="switchTab('activityTab', this)">Activity</button>
+    </div>
+
+    <!-- TON Tab -->
+    <div id="tonTab" class="tab-content active" role="tabpanel" aria-labelledby="tab-ton">
+      <form id="tonForm" onsubmit="handleTonTransfer(event)">
+        <div class="form-group">
+          <label for="tonRecipient">Recipient Address</label>
+          <input type="text" id="tonRecipient" placeholder="e.g. EQD..." required>
+        </div>
+        <div class="form-group">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <label for="tonAmount" style="margin-bottom:0;">Amount (TON)</label>
+            <button id="tonMaxBtn" type="button" aria-label="Use maximum TON balance" style="background:transparent; border:1px solid var(--border-color); color:#38bdf8; font-size:0.75rem; border-radius:6px; padding:2px 8px; cursor:pointer;" onclick="fillMaxTonAmount()">Max</button>
+          </div>
+          <input type="number" id="tonAmount" step="any" min="0.000000001" placeholder="0.00" required>
+        </div>
+        <div class="form-group">
+          <label for="tonComment">Comment / Payload (Optional)</label>
+          <input type="text" id="tonComment" placeholder="Transfer memo">
+        </div>
+        <button type="submit" class="btn-submit">Send TON</button>
+      </form>
+      <div id="tonStatus" class="status-card" aria-live="polite"></div>
+    </div>
+
+    <!-- Jetton Tab -->
+    <div id="jettonTab" class="tab-content" role="tabpanel" aria-labelledby="tab-jetton">
+      <form id="jettonForm" onsubmit="handleJettonTransfer(event)">
+        <div class="form-group">
+          <label for="jettonMaster">Jetton Master / Wallet Address</label>
+          <input type="text" id="jettonMaster" placeholder="e.g. EQB..." required>
+        </div>
+        <div class="form-group">
+          <label for="jettonRecipient">Recipient Address</label>
+          <input type="text" id="jettonRecipient" placeholder="e.g. EQD..." required>
+        </div>
+        <div class="form-group">
+          <label for="jettonAmount">Jetton Amount</label>
+          <input type="number" id="jettonAmount" step="any" placeholder="0.00" required>
+        </div>
+        <div class="form-group">
+          <label for="jettonComment">Comment / Payload (Optional)</label>
+          <input type="text" id="jettonComment" placeholder="Transfer memo">
+        </div>
+        <button type="submit" class="btn-submit">Send Jetton</button>
+      </form>
+      <div id="jettonStatus" class="status-card" aria-live="polite"></div>
+    </div>
+
+    <!-- Activity Tab -->
+    <div id="activityTab" class="tab-content" role="tabpanel" aria-labelledby="tab-activity">
+      <h3 style="margin-bottom:12px; font-size:1.1rem; color:#38bdf8;">Recent Transactions</h3>
+      <div id="activityList" style="color: var(--text-muted); font-size:0.9rem;">Connect your wallet to view transactions.</div>
+    </div>
+  </div>
+
+  <script>
+    const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+      manifestUrl: location.origin + '/tonconnect-manifest.json',
+      buttonRootId: 'ton-connect'
+    });
+
+    function switchTab(tabId, btnElement) {
+      document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+        btn.setAttribute('aria-selected', 'false');
+        btn.setAttribute('tabindex', '-1');
+      });
+
+      document.getElementById(tabId).classList.add('active');
+      btnElement.classList.add('active');
+      btnElement.setAttribute('aria-selected', 'true');
+      btnElement.setAttribute('tabindex', '0');
+    }
+
+    const tabList = document.querySelector('.tabs[role="tablist"]');
+    if (tabList) {
+      tabList.addEventListener('keydown', e => {
+        const tabs = Array.from(tabList.querySelectorAll('[role="tab"]'));
+        const index = tabs.indexOf(document.activeElement);
+        if (index === -1) return;
+
+        let newIndex = index;
+        if (e.key === 'ArrowRight') newIndex = (index + 1) % tabs.length;
+        else if (e.key === 'ArrowLeft') newIndex = (index - 1 + tabs.length) % tabs.length;
+        else if (e.key === 'Home') newIndex = 0;
+        else if (e.key === 'End') newIndex = tabs.length - 1;
+        else return;
+
+        e.preventDefault();
+        tabs[newIndex].focus();
+        tabs[newIndex].click();
+      });
+    }
+
+    function updateOnlineStatus() {
+      const badge = document.getElementById('connectionStatus');
+      if (navigator.onLine) {
+        badge.textContent = '● Online / PWA Ready';
+        badge.classList.add('online');
+      } else {
+        badge.textContent = '○ Offline Mode';
+        badge.classList.remove('online');
+      }
+    }
+
+    window.addEventListener('online', updateOnlineStatus);
+    window.addEventListener('offline', updateOnlineStatus);
+    updateOnlineStatus();
+
+    // Register Service Worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then(reg => console.log('ServiceWorker registered with scope:', reg.scope))
+          .catch(err => console.error('ServiceWorker registration failed:', err));
+      });
+    }
+
+    async function fetchTonAccountInfo(address) {
+      try {
+        const encodedAddr = encodeURIComponent(address);
+        // BOLT OPTIMIZATION: Execute independent account and transaction fetches concurrently using Promise.all
+        // to eliminate sequential network waterfall latency, cutting loading time by ~50%.
+        const [res, txRes] = await Promise.all([
+          fetch('/api/ton/account/' + encodedAddr),
+          fetch('/api/ton/transactions/' + encodedAddr)
+        ]);
+
+        if (res.ok) {
+          const data = await res.json();
+          if (data.balance !== undefined) {
+            document.getElementById('walletBalance').textContent = data.balance + ' TON';
+          }
+        }
+        if (txRes.ok) {
+          const txData = await txRes.json();
+          const activityEl = document.getElementById('activityList');
+          if (txData.transactions && txData.transactions.length > 0) {
+            activityEl.innerHTML = txData.transactions.map(tx => `
+              <div class="tx-item">
+                <div>
+                  <strong>${tx.type || 'Transaction'}</strong>
+                  <div style="font-size:0.75rem; color:var(--text-muted);">${tx.hash || ''}</div>
+                </div>
+                <div>${tx.amount || ''}</div>
+              </div>
+            `).join('');
+          } else {
+            activityEl.textContent = 'No recent transactions found.';
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching TON API info:', err);
+      }
+    }
+
+    function fillMaxTonAmount() {
+      const balanceText = document.getElementById('walletBalance').textContent;
+      const num = parseFloat(balanceText);
+      if (!isNaN(num) && num > 0) {
+        document.getElementById('tonAmount').value = num;
+        document.getElementById('tonAmount').focus();
+      }
+    }
+
+    let currentAddress = '';
+    function copyWalletAddress() {
+      if (!currentAddress) return;
+      navigator.clipboard.writeText(currentAddress).then(() => {
+        const btn = document.getElementById('copyAddressBtn');
+        btn.textContent = '✓ Copied';
+        btn.setAttribute('aria-label', 'Wallet address copied');
+        setTimeout(() => {
+          btn.textContent = 'Copy';
+          btn.setAttribute('aria-label', 'Copy wallet address');
+        }, 2000);
+      });
+    }
+
+    tonConnectUI.onStatusChange(wallet => {
+      const copyBtn = document.getElementById('copyAddressBtn');
+      const addrEl = document.getElementById('walletAddress');
+      const address = wallet?.account?.address || '';
+      currentAddress = address;
+      addrEl.textContent = address ? address.slice(0, 8) + '…' + address.slice(-8) : 'Not connected';
+      copyBtn.style.display = address ? 'inline-block' : 'none';
+      if (address) {
+        fetchTonAccountInfo(address);
+      } else {
+        document.getElementById('walletBalance').textContent = '— TON';
+        document.getElementById('activityList').textContent = 'Connect your wallet to view transactions.';
+      }
+    });
+
+    async function handleTonTransfer(event) {
+      event.preventDefault();
+      const form = event.target;
+      const btn = form.querySelector('button[type="submit"]');
+      const originalText = btn.textContent;
+      const statusDiv = document.getElementById('tonStatus');
+
+      statusDiv.className = 'status-card';
+      statusDiv.style.display = 'none';
+      btn.disabled = true;
+      btn.textContent = 'Sending TON...';
+      form.setAttribute('aria-busy', 'true');
+
+      const recipient = document.getElementById('tonRecipient').value;
+      const amount = document.getElementById('tonAmount').value;
+      const comment = document.getElementById('tonComment').value;
+
+      try {
+        const response = await fetch('/api/transfer/ton', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ recipient, amount, comment })
+        });
+        const result = await response.json();
+        if (response.ok && result.success) {
+          statusDiv.className = 'status-card success';
+          statusDiv.style.display = 'block';
+          statusDiv.innerHTML = `<strong>Success!</strong><br>${result.message}<br><small>Tx Hash: ${result.tx_hash}</small>`;
+        } else {
+          statusDiv.className = 'status-card error';
+          statusDiv.style.display = 'block';
+          statusDiv.innerHTML = `<strong>Error:</strong> ${result.error || 'Failed to send TON'}`;
+        }
+      } catch (err) {
+        statusDiv.className = 'status-card error';
+        statusDiv.style.display = 'block';
+        statusDiv.innerHTML = `<strong>Network Error:</strong> ${err.message}`;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = originalText;
+        form.removeAttribute('aria-busy');
+      }
+    }
+
+    async function handleJettonTransfer(event) {
+      event.preventDefault();
+      const form = event.target;
+      const btn = form.querySelector('button[type="submit"]');
+      const originalText = btn.textContent;
+      const statusDiv = document.getElementById('jettonStatus');
+
+      statusDiv.className = 'status-card';
+      statusDiv.style.display = 'none';
+      btn.disabled = true;
+      btn.textContent = 'Sending Jetton...';
+      form.setAttribute('aria-busy', 'true');
+
+      const jettonMaster = document.getElementById('jettonMaster').value;
+      const recipient = document.getElementById('jettonRecipient').value;
+      const amount = document.getElementById('jettonAmount').value;
+      const comment = document.getElementById('jettonComment').value;
+
+      try {
+        const response = await fetch('/api/transfer/jetton', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ jetton_master: jettonMaster, recipient, amount, comment })
+        });
+        const result = await response.json();
+        if (response.ok && result.success) {
+          statusDiv.className = 'status-card success';
+          statusDiv.style.display = 'block';
+          statusDiv.innerHTML = `<strong>Success!</strong><br>${result.message}<br><small>Tx Hash: ${result.tx_hash}</small>`;
+        } else {
+          statusDiv.className = 'status-card error';
+          statusDiv.style.display = 'block';
+          statusDiv.innerHTML = `<strong>Error:</strong> ${result.error || 'Failed to send Jetton'}`;
+        }
+      } catch (err) {
+        statusDiv.className = 'status-card error';
+        statusDiv.style.display = 'block';
+        statusDiv.innerHTML = `<strong>Network Error:</strong> ${err.message}`;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = originalText;
+        form.removeAttribute('aria-busy');
+      }
+    }
+  </script>
+</body>
+</html>

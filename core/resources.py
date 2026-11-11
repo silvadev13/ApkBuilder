@@ -10,9 +10,9 @@ class Aapt2Task:
         self.libs_to_compile = []
     
     def prepare(self):
-        aapt2_available = cmd_is_available("aapt2")
+        aapt2_available = cmd_is_available(self.project.bin_aapt2)
         if not aapt2_available:
-            raise Exception("> aapt2 not detected in PATH. Please set it in PATH.")
+            raise Exception("> aapt2 not detected in PATH or SDK build-tools. Please set it in PATH or project configuration.")
         
         get_logger().info("-- Preparing Aapt2")
         self.libs_to_compile = self.project.find_lib_jars()
@@ -27,23 +27,21 @@ class Aapt2Task:
             lib_dir = os.path.dirname(jar)
             lib_name = os.path.basename(lib_dir)
             if os.path.exists(os.path.join(compiled_res_dir, lib_name + ".zip")):
-                # remove the library from the list so it wont get compiled
-                #get_logger().info(f"> :app:removingLibraryToSpeedUp {lib_name}")
                 continue
             filtered_libs.append(os.path.abspath(jar))
         self.libs_to_compile = filtered_libs
         
         if os.path.isdir(bin_dir):
-            for child in os.listdir(bin_dir):
-                if child == "res":
-                    continue
-                
-                path = os.path.join(bin_dir, child)
-                
-                if os.path.isdir(path):
-                    shutil.rmtree(path)
-                else:
-                    os.remove(path)
+            # BOLT OPTIMIZATION: Use os.scandir instead of os.listdir + os.path.join/isdir
+            # to avoid stat syscalls and string concatenations during bin_dir cleanup.
+            with os.scandir(bin_dir) as entries:
+                for entry in entries:
+                    if entry.name == "res":
+                        continue
+                    if entry.is_dir():
+                        shutil.rmtree(entry.path)
+                    else:
+                        os.remove(entry.path)
         
         os.makedirs(bin_dir, exist_ok=True)
         os.makedirs(gen_dir, exist_ok=True)
@@ -106,10 +104,12 @@ class Aapt2Task:
             args += ["-A", assets_dir]
         
         #add compiled res
-        for f in os.listdir(compiled_res_dir):
-            full = os.path.join(compiled_res_dir, f)
-            if f.endswith(".zip"):
-                args += ["-R", full]
+        # BOLT OPTIMIZATION: Use os.scandir to avoid os.listdir list creation and os.path.join calls
+        if os.path.isdir(compiled_res_dir):
+            with os.scandir(compiled_res_dir) as entries:
+                for entry in entries:
+                    if entry.is_file() and entry.name.endswith(".zip"):
+                        args += ["-R", entry.path]
         
         #use to gen R.java for used libraries
         extra_packages = self.project.get_lib_package_names()

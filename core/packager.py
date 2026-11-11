@@ -15,9 +15,9 @@ class Task:
     def __sign_apk(self):
         get_logger().info("-- Signing Apk")
     
-        apksigner_available = cmd_is_available("apksigner")
+        apksigner_available = cmd_is_available(self.project.bin_apksigner)
         if not apksigner_available:
-            raise Exception("> apksigner not detected in PATH. Please set it in PATH.")
+            raise Exception("> apksigner not detected in PATH or SDK build-tools. Please set it in PATH.")
     
         run([
             self.project.bin_apksigner, "sign",

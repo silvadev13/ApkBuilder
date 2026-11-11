@@ -2,6 +2,9 @@ from core.binding.model import ViewNode
 from core.binding.parser import ANDROID_NS
 
 A = f"{{{ANDROID_NS}}}"
+# BOLT OPTIMIZATION: Precompute android:id attribute key to avoid
+# repeated string concatenation in bind_views during XML AST traversal.
+A_ID = f"{{{ANDROID_NS}}}id"
 
 def snake_to_camel(s):
     if "_" not in s:
@@ -22,7 +25,7 @@ def normalize_id(value):
     return value.split("/")[-1]
 
 def bind_views(elem, child=False):
-    view_id = normalize_id(elem.get(A + "id"))
+    view_id = normalize_id(elem.get(A_ID))
     binding_id = None
     if not view_id and not child:
         view_id = "rootView"

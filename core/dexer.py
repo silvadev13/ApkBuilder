@@ -6,12 +6,12 @@ class Task:
     def __init__(self, project: Project):
         self.project = project
         self.android_jar = os.path.join(self.project.sdk_dir, "platforms", f"android-{self.project.target_sdk}", "android.jar")
-        self.classpath = []
+        self.classpath = None
     
     def prepare(self):
-        d8_available = cmd_is_available("d8")
+        d8_available = cmd_is_available(self.project.bin_d8)
         if not d8_available:
-            raise Exception("-- d8 not detected in PATH. Please set it in PATH.")
+            raise Exception("-- d8 not detected in PATH or SDK build-tools. Please set it in PATH.")
         
         if not os.path.exists(self.project.dex_dir):
             os.makedirs(self.project.dex_dir)
@@ -57,9 +57,12 @@ class Task:
         ])
     
     def __get_classpath(self):
-        if self.classpath:
+        # BOLT OPTIMIZATION: Cache classpath list (including empty list when no
+        # library jars exist) so __get_classpath does not re-query find_lib_jars().
+        if self.classpath is not None:
             return self.classpath
     
+        self.classpath = []
         for library in self.project.find_lib_jars():
             self.classpath.extend(["--classpath", library])
     
