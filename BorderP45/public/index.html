@@ -262,8 +262,11 @@
           <input type="text" id="tonRecipient" placeholder="e.g. EQD..." required>
         </div>
         <div class="form-group">
-          <label for="tonAmount">Amount (TON)</label>
-          <input type="number" id="tonAmount" step="any" placeholder="0.00" required>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <label for="tonAmount" style="margin-bottom:0;">Amount (TON)</label>
+            <button id="tonMaxBtn" type="button" aria-label="Use maximum TON balance" style="background:transparent; border:1px solid var(--border-color); color:#38bdf8; font-size:0.75rem; border-radius:6px; padding:2px 8px; cursor:pointer;" onclick="fillMaxTonAmount()">Max</button>
+          </div>
+          <input type="number" id="tonAmount" step="any" min="0.000000001" placeholder="0.00" required>
         </div>
         <div class="form-group">
           <label for="tonComment">Comment / Payload (Optional)</label>
@@ -404,6 +407,15 @@
         }
       } catch (err) {
         console.error('Error fetching TON API info:', err);
+      }
+    }
+
+    function fillMaxTonAmount() {
+      const balanceText = document.getElementById('walletBalance').textContent;
+      const num = parseFloat(balanceText);
+      if (!isNaN(num) && num > 0) {
+        document.getElementById('tonAmount').value = num;
+        document.getElementById('tonAmount').focus();
       }
     }
 
