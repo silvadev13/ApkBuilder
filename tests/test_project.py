@@ -407,5 +407,31 @@ android:
         )
         self.assertTrue(os.path.isfile(expected_binding_file))
 
+    @patch("utils.util.cmd_is_available", return_value=True)
+    @patch("utils.util.get_bin", return_value="/usr/bin/stub")
+    @patch("os.getenv", return_value="/tmp/android-sdk")
+    def test_aapt2_task_prepare_library_resource_filtering(self, mock_getenv, mock_get_bin, mock_cmd_avail):
+        from core.resources import Aapt2Task
+        proj = Project(self.project_dir)
+
+        # Create two libraries: lib1 (already has lib1.zip compiled) and lib2 (not yet compiled)
+        lib2_dir = os.path.join(self.libs_dir, "lib2")
+        os.makedirs(lib2_dir, exist_ok=True)
+        with open(os.path.join(lib2_dir, "classes.jar"), "w") as f:
+            f.write("dummy jar 2")
+
+        # In compiled_res_dir, place lib1.zip
+        os.makedirs(proj.compiled_res_dir, exist_ok=True)
+        with open(os.path.join(proj.compiled_res_dir, "lib1.zip"), "w") as f:
+            f.write("compiled lib1 res")
+
+        task = Aapt2Task(proj)
+        task.prepare()
+
+        # lib1 should be filtered out because lib1.zip exists, lib2 should be retained
+        compiled_jars = [os.path.basename(os.path.dirname(j)) for j in task.libs_to_compile]
+        self.assertNotIn("lib1", compiled_jars)
+        self.assertIn("lib2", compiled_jars)
+
 if __name__ == "__main__":
     unittest.main()
